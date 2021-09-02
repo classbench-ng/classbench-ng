@@ -212,5 +212,15 @@ module Classbench
 				rule
 			end
 		end
+
+		def generate_updates(format, count, period, add, rem, tmax)
+			puts "Generation with updates"
+			puts "\t" + format
+			puts "\t" + count.to_s
+			puts "\t" + period
+			puts "\t" + add
+			puts "\t" + rem
+			puts "\t" + tmax
+                end
 	end
 end

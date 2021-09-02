@@ -11,9 +11,9 @@ ClassBench-ng
 Usage:
   #{__FILE__} analyse tuples FILE FORMAT [-l]
   #{__FILE__} analyse of FILE
-  #{__FILE__} generate v4 SEED [--count=<n>] [--db-generator=<path>]
-  #{__FILE__} generate v6 SEED [--count=<n>] [--db-generator=<path>]
-  #{__FILE__} generate of SEED [--count=<n>] [--db-generator=<path>]
+  #{__FILE__} generate v4 SEED [--count=<n>] [(updates PERIOD ADD REM TMAX)] [--db-generator=<path>]
+  #{__FILE__} generate v6 SEED [--count=<n>] [(updates PERIOD ADD REM TMAX)] [--db-generator=<path>]
+  #{__FILE__} generate of SEED [--count=<n>] [(updates PERIOD ADD REM TMAX)] [--db-generator=<path>]
   #{__FILE__} -h | --help
 
 Options:
@@ -51,11 +51,11 @@ begin
 		end
 	elsif opts["generate"]
 		if opts["v4"]
-			Classbench::generate("v4", opts["SEED"], (opts["--count"].to_i), opts["--db-generator"])
+			Classbench::generate("v4", opts["SEED"], (opts["--count"].to_i), opts["updates"], opts["PERIOD"], opts["ADD"], opts["REM"], opts["TMAX"], opts["--db-generator"])
 		elsif opts["v6"]
-			Classbench::generate("v6", opts["SEED"], (opts["--count"].to_i), opts["--db-generator"])
+			Classbench::generate("v6", opts["SEED"], (opts["--count"].to_i), opts["updates"], opts["PERIOD"], opts["ADD"], opts["REM"], opts["TMAX"], opts["--db-generator"])
 		elsif opts["of"]
-			Classbench::generate("of", opts["SEED"], (opts["--count"].to_i), opts["--db-generator"])
+			Classbench::generate("of", opts["SEED"], (opts["--count"].to_i), opts["updates"], opts["PERIOD"], opts["ADD"], opts["REM"], opts["TMAX"], opts["--db-generator"])
 		end
 	elsif opts["version"]
 		puts "Version: #{Classbench::VERSION}"

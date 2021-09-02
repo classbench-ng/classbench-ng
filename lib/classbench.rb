@@ -64,12 +64,17 @@ module Classbench
 
 	end
 
-	def self.generate(format, filename, count, db_generator_path)
+	def self.generate(format, filename, count, updates, period, add, rem, tmax, db_generator_path)
 		generator = Generator.new(filename, db_generator_path)
 		if format == "of"
 			if !generator.parse_seed
 				return
 			end
+		end
+
+		if updates
+			generator.generate_updates(format, count, period, add, rem, tmax)
+			return
 		end
 
 		#puts  YAML.dump(generator.openflow_section)
