@@ -11,9 +11,9 @@ ClassBench-ng
 Usage:
   #{__FILE__} analyse tuples FILE FORMAT [-l]
   #{__FILE__} analyse of FILE
-  #{__FILE__} generate v4 SEED [--count=<n>] [(updates PERIOD ADD REM TMAX)] [--db-generator=<path>]
-  #{__FILE__} generate v6 SEED [--count=<n>] [(updates PERIOD ADD REM TMAX)] [--db-generator=<path>]
-  #{__FILE__} generate of SEED [--count=<n>] [(updates PERIOD ADD REM TMAX)] [--db-generator=<path>]
+  #{__FILE__} generate v4 SEED [--count=<n>] [(updates PER_U PER_S ADD_U ADD_S REM_U REM_S TMAX)] [--db-generator=<path>]
+  #{__FILE__} generate v6 SEED [--count=<n>] [(updates PER_U PER_S ADD_U ADD_S REM_U REM_S TMAX)] [--db-generator=<path>]
+  #{__FILE__} generate of SEED [--count=<n>] [(updates PER_U PER_S ADD_U ADD_S REM_U REM_S TMAX)] [--db-generator=<path>]
   #{__FILE__} -h | --help
 
 Options:
@@ -36,6 +36,16 @@ an OpenFlow section in case of "generate of".
 The output is either the same as of original ClassBench outputs or it consists
 of "attribute=value" pairs joined by ", ".
 
+Generator can also optionally produce rule set updates with period between
+updates in seconds, number of added rules per update, and number of removed
+rules per update sampled from independent normal distributions specified by
+their mean value (*_U) and standard deviation (*_S). The generated update
+sequence starts in time 0 and it is limited by the specified maximum time of
+the last update.
+Generated updates (i.e., rules to be added and rules to be removed) together
+with updated rule sets are stored in directory "updates", while the output of
+the generator shows an update plan.
+
 DOCOPT
 # Add the following line to the DOCOPT's "Options" pattern to show support of
 # "version" parameter.
@@ -50,12 +60,15 @@ begin
 			Classbench::analyse_of(opts["FILE"])
 		end
 	elsif opts["generate"]
+		period = { "mean" => opts["PER_U"].to_f, "std" => opts["PER_S"].to_f }
+		add =    { "mean" => opts["ADD_U"].to_f, "std" => opts["ADD_S"].to_f }
+		rem =    { "mean" => opts["REM_U"].to_f, "std" => opts["REM_S"].to_f }
 		if opts["v4"]
-			Classbench::generate("v4", opts["SEED"], (opts["--count"].to_i), opts["updates"], opts["PERIOD"], opts["ADD"], opts["REM"], opts["TMAX"], opts["--db-generator"])
+			Classbench::generate("v4", opts["SEED"], (opts["--count"].to_i), opts["updates"], period, add, rem, opts["TMAX"].to_f, opts["--db-generator"])
 		elsif opts["v6"]
-			Classbench::generate("v6", opts["SEED"], (opts["--count"].to_i), opts["updates"], opts["PERIOD"], opts["ADD"], opts["REM"], opts["TMAX"], opts["--db-generator"])
+			Classbench::generate("v6", opts["SEED"], (opts["--count"].to_i), opts["updates"], period, add, rem, opts["TMAX"].to_f, opts["--db-generator"])
 		elsif opts["of"]
-			Classbench::generate("of", opts["SEED"], (opts["--count"].to_i), opts["updates"], opts["PERIOD"], opts["ADD"], opts["REM"], opts["TMAX"], opts["--db-generator"])
+			Classbench::generate("of", opts["SEED"], (opts["--count"].to_i), opts["updates"], period, add, rem, opts["TMAX"].to_f, opts["--db-generator"])
 		end
 	elsif opts["version"]
 		puts "Version: #{Classbench::VERSION}"

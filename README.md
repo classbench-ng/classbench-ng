@@ -10,7 +10,7 @@ The format of the generated rules can be one of the following:
 - Ruby 1.9.3+
 - RubyGems
 ```
-sudo gem install open4 ruby-ip docopt ipaddress
+sudo gem install open4 ruby-ip docopt ipaddress distribution fileutils
 ```
 
 ## Installation
@@ -42,7 +42,7 @@ Basic characteristics of patches available in `./patches` directory and suggesti
 ## Usage
 ClassBench-ng can be used in two different ways:
 - To analyse an existing rule set and extract a corresponding SEED.
-- To generate a synthetic rule set from an input SEED.
+- To generate a synthetic rule set, optionally including also a series of rule set updates, from an input SEED.
 
 ```
 ./classbench -h | --help
@@ -103,6 +103,22 @@ Generates OpenFlow rules following the properties from SEED that has to contain 
 - `--db-generator=<path>` specifies the path to an original ClassBench binary (default: `./vendor/db_generator/db_generator`)
 
 The output consists of `attribute=value` pairs joined by `, `.
+
+#### Rule Set Updates
+ClassBench-ng Rule Generator can also generate a series of IPv4, IPv6, or OpenFlow 1.0 rule set updates
+
+```
+./classbench generate (v4|v6|of) SEED [--count=<n>] updates PER_U PER_S ADD_U ADD_S REM_U REM_S TMAX [--db-generator=<path>]
+```
+Generates a rule set and its updates consisting of IPv4 5-tuples (`v4`), IPv6 5-tuples (`v6`), or OpenFlow rules (`of`) following the properties from SEED and with update parameters sampled from independent normal distributions.
+- `--count=<n>` specifies the number of rules to be generated (default: `100`)
+- `PER_U` and `PER_S` specify mean and standard deviation, respectively, of period between updates in seconds (possibly real numbers)
+- `ADD_U` and `ADD_S` specify mean and standard deviation, respectively, of rules added per update (possibly real numbers)
+- `REM_U` and `REM_S` specify mean and standard deviation, respectively, of rules removed per update (possibly real numbers)
+- `TMAX` specify maximum length of the update sequence in seconds (possibly real number)
+- `--db-generator=<path>` specifies the path to an original ClassBench binary (default: `./vendor/db_generator/db_generator`)
+
+Generated rule set, its updates (rules to be added, rule to be removed) and snapshots (current state of the rule set) are stored in separate files in `./seeds`, while generator's output shows an update plan.
 
 ## Known Issues
 - the number of generated rules is usually lower than in original ClassBench (i.e., ClassBench-ng generates higher number of redundant rules that are removed in the last phase)

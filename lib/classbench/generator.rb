@@ -1,6 +1,8 @@
 require 'tempfile'
 require 'pp'
 require 'open4'
+require 'distribution'
+require 'fileutils'
 
 module Classbench
 	class Generator
@@ -214,13 +216,104 @@ module Classbench
 		end
 
 		def generate_updates(format, count, period, add, rem, tmax)
-			puts "Generation with updates"
-			puts "\t" + format
-			puts "\t" + count.to_s
-			puts "\t" + period
-			puts "\t" + add
-			puts "\t" + rem
-			puts "\t" + tmax
-                end
+                        # initialize generators of normally distributed random values for "period", "add", and "rem"
+			gen_period = Distribution::Normal.rng(period["mean"], period["std"])
+			gen_add = Distribution::Normal.rng(add["mean"], add["std"])
+			gen_rem = Distribution::Normal.rng(rem["mean"], rem["std"])
+
+			# use ClassBench-ng to generate two times more rules than requested
+			rules = self.generate_rules(format, count * 2)
+			if format == "of"
+				rules.map!(&:to_vswitch_format)
+			end
+
+			# split rule set into two parts
+			rules.shuffle!
+			current_rules = rules.take(rules.count / 2)
+			other_rules = rules.drop(rules.count / 2)
+
+			# ensure empty "updates" directory
+                        dirname = "updates"
+			FileUtils.rm_rf(dirname)
+			FileUtils.mkdir(dirname)
+
+                        # save initial rule set
+			time = 0.000
+			self.save_update(time, [], [], current_rules, dirname)
+
+			# plan time of the next update (if any)
+			time += gen_period.call
+			time = time.round(3)
+			if (time > tmax)
+				return
+			end
+
+			# main updates generation loop
+			while (true)
+				# select number of rules to be added and removed
+				n_add = gen_add.call.round
+				n_rem = gen_rem.call.round
+
+				# check if there are enough rules to be added and removed
+				if (n_add > other_rules.count)
+					STDERR.puts "Not enough rules to be added."
+					return
+				end
+				if (n_rem > current_rules.count)
+					STDERR.puts "Not enough rules to be removed."
+					return
+				end
+
+				# select actual rules to be added and removed
+				add_rules = other_rules.sample(n_add)
+				rem_rules = current_rules.sample(n_rem)
+
+				# update current_rules accordingly
+				rem_rules.each do |rule|
+					current_rules.delete_at(current_rules.index(rule))
+				end
+				current_rules.concat(add_rules)
+
+				# update other_rules accordingly
+				add_rules.each do |rule|
+					other_rules.delete_at(other_rules.index(rule))
+				end
+				other_rules.concat(rem_rules)
+
+				# save current update
+				self.save_update(time, add_rules, rem_rules, current_rules, dirname)
+
+				# plan time of the next update (if any)
+				time += gen_period.call
+				time = time.round(3)
+				if (time > tmax)
+					return
+				end
+			end
+		end
+
+		def save_update(time, add_rules, rem_rules, cur_rules, dir)
+                        # compose unique file names by appending "time" parameter
+			f_add_name = dir + "/add_rules_" + time.to_s
+			f_rem_name = dir + "/rem_rules_" + time.to_s
+			f_cur_name = dir + "/cur_rules_" + time.to_s
+
+			# write rules to corresponding files
+			File.open(f_add_name, "w") do |f|
+				f.puts(add_rules)
+			end
+			File.open(f_rem_name, "w") do |f|
+				f.puts(rem_rules)
+			end
+			File.open(f_cur_name, "w") do |f|
+				f.puts(cur_rules)
+			end
+
+			# write update plan record to stdout
+			puts "Time: " + time.to_s + "; " \
+                             "Added rules: " + f_add_name + "; " \
+                             "Removed rules: " + f_rem_name + "; " \
+                             "Current rule set: " + f_cur_name + ";"
+		end
 	end
 end
