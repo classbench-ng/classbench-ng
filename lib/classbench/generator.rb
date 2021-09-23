@@ -254,6 +254,16 @@ module Classbench
 				n_add = gen_add.call.round
 				n_rem = gen_rem.call.round
 
+                                # check if the number of rules to be added and removed is positive
+				if (n_add < 0)
+					n_add = 0
+					STDERR.puts "Negative number of rules to be added changed to 0."
+				end
+				if (n_rem < 0)
+					n_rem = 0
+					STDERR.puts "Negative number of rules to be removed changed to 0."
+				end
+
 				# check if there are enough rules to be added and removed
 				if (n_add > other_rules.count)
 					STDERR.puts "Not enough rules to be added."
