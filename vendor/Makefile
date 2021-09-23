@@ -10,13 +10,13 @@ download:
 	-[ -d db_generator ] && mv db_generator db_generator-$(BACKUP_TIME)
 
 	# Download and unpack ClassBench
-	wget -O- -q http://www.arl.wustl.edu/classbench/db_generator.tar.gz | tar -xvz
+	wget -O- --no-check-certificate -q http://www.arl.wustl.edu/classbench/db_generator.tar.gz | tar -xvz
 
 	# Make backup of parameter_files, if exists
 	-[ -d parameter_files ] && mv parameter_files parameter_files-$(BACKUP_TIME)
 
 	# Download and unpack ClassBench parameter files
-	wget -O- -q http://www.arl.wustl.edu/classbench/parameter_files.tar.gz | tar -xvz
+	wget -O- --no-check-certificate -q http://www.arl.wustl.edu/classbench/parameter_files.tar.gz | tar -xvz
 
 patch: download
 	# Apply patches from ../patches
